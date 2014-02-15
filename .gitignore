@@ -11,3 +11,12 @@
 *.lai
 *.la
 *.a
+
+# Output files
+*.exe
+
+# Dev-Cpp stuff
+*_private.*
+ColobotLauncher.dev
+ColobotLauncher.layout
+Makefile.win
