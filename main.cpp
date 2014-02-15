@@ -37,6 +37,7 @@ std::string colobotDir;
 enum ColobotVersion {
 	VERSION_UNKNOWN,
 	VERSION_1_9_PL,
+	VERSION_1_9_PL_KS,
 	VERSION_1_3_EN,
 	VERSION_1_8_EN
 };
@@ -66,6 +67,14 @@ void LoadVersions()
 	version_1_9_pl.versionStr = "1.9 PL";
 	version_1_9_pl.fullVersionStr = "Colobot Orginal 1.9 PL";
 	versions[VERSION_1_9_PL] = version_1_9_pl;
+	
+	VersionData version_1_9_pl_ks;
+	version_1_9_pl_ks.md5 = "83e54ee377bcdf9f4930e0892952c4ab";
+	version_1_9_pl_ks.websiteStringPtr = (void*)0x0053CEE8;
+	version_1_9_pl_ks.versionStringPtr = (void*)0x005416B0;
+	version_1_9_pl_ks.versionStr = "1.9 KŒ";
+	version_1_9_pl_ks.fullVersionStr = "Colobot Orginal 1.9 PL (Komputer Œwiat edition)";
+	versions[VERSION_1_9_PL_KS] = version_1_9_pl_ks;
 	
 	VersionData version_1_3_en;
 	version_1_3_en.md5 = "19b10cab2e24170e75791e0d8ef6adb2";
@@ -119,6 +128,17 @@ int main(int argc, char *argv[])
 	if(argc >= 2) {
 		if(!strcmp(argv[1], "getmd5")) {
 			cout << "MD5: " << GetFileMD5(colobotDir+"colobot.exe") << endl;
+			MessageBox(hwnd, ("MD5: "+GetFileMD5(colobotDir+"colobot.exe")).c_str(), "ColobotLauncher", MB_ICONINFORMATION | MB_OK);
+			return EXIT_SUCCESS;
+		}
+		
+		if(!strcmp(argv[1], "getclassname")) {
+			hwnd = FindWindow(NULL, "COLOBOT");
+			char* classname = new char[64];
+			GetClassName(hwnd, classname, 64);
+			
+			cout << "Class name: " << classname << endl;
+			MessageBox(hwnd, (std::string("Class name: ")+classname).c_str(), "ColobotLauncher", MB_ICONINFORMATION | MB_OK);
 			return EXIT_SUCCESS;
 		}
     }
@@ -171,7 +191,7 @@ int main(int argc, char *argv[])
     cout << "Waiting for game window... ";
 	splash.SetProgress(GetPercentage(4), "Waiting for game window...");
     while(hwnd == NULL) {
-    	hwnd = FindWindow(NULL, "COLOBOT");
+    	hwnd = FindWindow("D3D Window", "COLOBOT");
     }
     cout << "OK" << endl;
     
