@@ -3,10 +3,13 @@
 #include <string>
 #include <map>
 #include <windows.h>
+#include <gdiplus.h>
+#include "SplashWnd.h"
 
 #include "utils.h"
 
 using namespace std;
+using namespace Gdiplus;
 
 HWND hwnd = NULL;
 
@@ -25,15 +28,6 @@ void ReportError(std::string text)
 {
     cout << "ERROR: " << text << endl;
     MessageBox(hwnd, ("There was a problem starting your game.\nError message: "+text).c_str(), "ColobotLauncher - ERROR", MB_ICONERROR | MB_OK);
-}
-
-void ReportError(std::string text, int code)
-{
-    cout << "ERROR: " << text << ", code: " << code << endl;
-    char* codeStr = new char[4];
-    sprintf(codeStr, "%d", code);
-    MessageBox(hwnd, ("There was a problem starting your game.\nError message: "+text+"\nError code: "+codeStr).c_str(), "ColobotLauncher - ERROR", MB_ICONERROR | MB_OK);
-    delete codeStr;
 }
 
 // --------
@@ -102,6 +96,11 @@ ColobotVersion GetColobotVersion()
 	return VERSION_UNKNOWN;
 }
 
+inline int GetPercentage(int stage)
+{
+	return (int)((((double)stage)/7)*100);
+}
+
 int main(int argc, char *argv[])
 {
 	LoadVersions();
@@ -117,34 +116,50 @@ int main(int argc, char *argv[])
 	
     colobotDir = std::string(workingDir)+"\\";
     
-    if(argc >= 2) {
-    	if(!strcmp(argv[1], "getmd5")) {
-	    	cout << "MD5: " << GetFileMD5(colobotDir+"colobot.exe") << endl;
-	    	return EXIT_SUCCESS;
+	if(argc >= 2) {
+		if(!strcmp(argv[1], "getmd5")) {
+			cout << "MD5: " << GetFileMD5(colobotDir+"colobot.exe") << endl;
+			return EXIT_SUCCESS;
 		}
     }
     
+    GdiplusStartupInput gdiplusStartupInput;
+	ULONG_PTR gdiplusToken;
+	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+	
+	WCHAR* splashFile = L"ppc.png";
+	Image* image = Image::FromFile(splashFile);
+	
+	CSplashWnd splash;
+	splash.SetImage(image);
+	splash.Show();
+	splash.SetProgress(GetPercentage(0), "Welcome!");
+	Sleep(1500);
+    
     cout << "Setting combatibility mode... ";
+	splash.SetProgress(GetPercentage(1), "Setting combatibility mode...");
     HKEY hkey;
     LONG res = RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", 0, KEY_ALL_ACCESS, &hkey);
     if(res != ERROR_SUCCESS) {
-           ReportError("opening key", res);
+           ReportError("opening key");
            return EXIT_FAILURE;
     }
     LPCTSTR data = "WINXPSP3 RUNASADMIN\0";
     res = RegSetValueEx(hkey, (LPCTSTR)((colobotDir+"colobot.exe").c_str()), 0, REG_SZ, (LPBYTE)data, strlen(data)+1);
     if(res != ERROR_SUCCESS) {
-           ReportError("writing value", res);
+           ReportError("writing value");
            return EXIT_FAILURE;
     }
     cout << "OK" << endl;
     
     cout << "Checking version... ";
+	splash.SetProgress(GetPercentage(2), "Checking version...");
 	ColobotVersion version = GetColobotVersion();
 	VersionData versionData = versions[version];
 	cout << versionData.fullVersionStr << endl;
     
     cout << "Creating process... ";
+	splash.SetProgress(GetPercentage(3), "Creating process...");
     PROCESS_INFORMATION pi;
     if(!StartProcess(colobotDir.c_str(), (colobotDir+"colobot.exe -nocd").c_str(), &pi)) {
         ReportError("creating process");
@@ -154,12 +169,14 @@ int main(int argc, char *argv[])
     cout << "OK" << endl;
     
     cout << "Waiting for game window... ";
+	splash.SetProgress(GetPercentage(4), "Waiting for game window...");
     while(hwnd == NULL) {
     	hwnd = FindWindow(NULL, "COLOBOT");
     }
     cout << "OK" << endl;
     
     cout << "Changing window title... ";
+	splash.SetProgress(GetPercentage(5), "Changing window title...");
     if(!SetWindowText(hwnd, versionData.fullVersionStr.c_str())) {
     	cout << "ERROR (" << GetLastError() << "), SKIP" << endl;
     } else {
@@ -167,6 +184,7 @@ int main(int argc, char *argv[])
     }
     
     cout << "Changing website text... ";
+	splash.SetProgress(GetPercentage(6), "Changing website text...");
     if(version == VERSION_UNKNOWN || versionData.websiteStringPtr == NULL) {
     	cout << "SKIP" << endl;
     } else {
@@ -180,6 +198,7 @@ int main(int argc, char *argv[])
     }
     
     cout << "Changing version text... ";
+	splash.SetProgress(GetPercentage(7), "Changing website text...");
     if(version == VERSION_UNKNOWN || versionData.versionStringPtr == NULL) {
     	cout << "SKIP" << endl;
     } else {
@@ -192,8 +211,14 @@ int main(int argc, char *argv[])
     	}
     }
     
+    splash.Hide();
+    delete image;
+    
     CloseHandle(process);
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
+    
+    GdiplusShutdown(gdiplusToken);
+    
     return EXIT_SUCCESS;
 }
