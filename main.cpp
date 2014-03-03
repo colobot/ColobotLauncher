@@ -3,6 +3,7 @@
 #include <string>
 #include <map>
 #include <windows.h>
+#include <cstdio>
 
 #include "utils.h"
 
