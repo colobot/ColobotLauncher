@@ -46,6 +46,7 @@ enum ColobotVersion {
 	VERSION_1_9_PL,
 	VERSION_1_3_EN,
 	VERSION_1_8_EN,
+	VERSION_1_8_EN_2,
 	VERSION_1_9_PL_KS,
 	VERSION_CEEBOT4_PL,
 	VERSION_C4S_EN,
@@ -94,6 +95,12 @@ void LoadVersions()
 	version_1_8_en.versionStr = "1.8 EN";
 	version_1_8_en.fullVersionStr = "Colobot";
 	versions[VERSION_1_8_EN] = version_1_8_en;
+	
+	VersionData version_1_8_en_2;
+	version_1_8_en_2.md5 = "44b461930119879487dbc89788deb0c0";
+	version_1_8_en_2.versionStr = "1.8 EN";
+	version_1_8_en_2.fullVersionStr = "Colobot";
+	versions[VERSION_1_8_EN_2] = version_1_8_en_2;
 	
 	VersionData version_1_9_pl_ks;
 	version_1_9_pl_ks.md5 = "83e54ee377bcdf9f4930e0892952c4ab";
@@ -227,9 +234,9 @@ int main(int argc, char *argv[])
     
     cout << "Waiting for game window... ";
     while(hwnd == NULL) {
-    	hwnd = FindWindow("D3D Window", "COLOBOT");
-		hwnd = FindWindow("D3D Window", "BuzzingCars");
-		hwnd = FindWindow("D3D Window", "CeeBot");
+    	if(game == "colobot.exe") hwnd = FindWindow("D3D Window", "COLOBOT");
+		else if(game == "buzzingcars.exe") hwnd = FindWindow("D3D Window", "BuzzingCars");
+		else hwnd = FindWindow("D3D Window", "CeeBot");
     }
     cout << "OK" << endl;
     
