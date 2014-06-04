@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-Wall -g -std=c++11 -mwindows
+CXXFLAGS=-Wall -g -std=c++11 -mwindows -static
 NAME=EengineLauncher.exe
 
 CXXSRC=md5.cpp\
